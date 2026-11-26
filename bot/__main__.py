@@ -7,6 +7,7 @@ from .commands import BlogCommands
 from .config import Config
 from .db import Database
 from .feeds import make_client
+from .poller import Poller
 
 log = logging.getLogger("bot")
 
@@ -23,6 +24,7 @@ class BlogBot(commands.Bot):
     async def setup_hook(self) -> None:
         await self.db.connect()
         await self.add_cog(BlogCommands(self))
+        await self.add_cog(Poller(self, self.config.poll_interval_minutes, self.config.max_posts_per_poll))
 
         if self.config.dev_guild_id:
             guild = discord.Object(id=self.config.dev_guild_id)
