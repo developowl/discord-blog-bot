@@ -3,6 +3,7 @@ import logging
 import discord
 from discord.ext import commands
 
+from .commands import BlogCommands
 from .config import Config
 from .db import Database
 from .feeds import make_client
@@ -21,6 +22,7 @@ class BlogBot(commands.Bot):
 
     async def setup_hook(self) -> None:
         await self.db.connect()
+        await self.add_cog(BlogCommands(self))
 
         if self.config.dev_guild_id:
             guild = discord.Object(id=self.config.dev_guild_id)
