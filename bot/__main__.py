@@ -4,6 +4,7 @@ import discord
 from discord.ext import commands
 
 from .config import Config
+from .db import Database
 
 log = logging.getLogger("bot")
 
@@ -14,8 +15,11 @@ class BlogBot(commands.Bot):
         intents.guilds = True
         super().__init__(command_prefix=commands.when_mentioned, intents=intents, help_command=None)
         self.config = config
+        self.db = Database(config.db_path)
 
     async def setup_hook(self) -> None:
+        await self.db.connect()
+
         if self.config.dev_guild_id:
             guild = discord.Object(id=self.config.dev_guild_id)
             self.tree.copy_global_to(guild=guild)
@@ -27,6 +31,10 @@ class BlogBot(commands.Bot):
 
     async def on_ready(self) -> None:
         log.info("로그인: %s (id=%s)", self.user, self.user.id)
+
+    async def close(self) -> None:
+        await super().close()
+        await self.db.close()
 
 
 def main() -> None:
