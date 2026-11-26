@@ -167,6 +167,33 @@ async def fetch_feed(
     return _to_result(resp, body)
 
 
+OG_IMAGE_KEYS = (
+    ("property", "og:image"),
+    ("property", "og:image:url"),
+    ("name", "og:image"),
+    ("name", "twitter:image"),
+)
+
+
+async def fetch_og_image(client: httpx.AsyncClient, page_url: str) -> str | None:
+    """글 페이지의 og:image(없으면 twitter:image) 주소를 찾는다. 실패하면 None."""
+    try:
+        resp, body = await _get(client, page_url)
+    except (httpx.HTTPError, FeedError):
+        return None
+    if not resp.is_success:
+        return None
+    soup = BeautifulSoup(body, "html.parser")
+    for attr, key in OG_IMAGE_KEYS:
+        tag = soup.find("meta", attrs={attr: key})
+        content = (tag.get("content") or "").strip() if tag else ""
+        if content:
+            url = urljoin(str(resp.url), content)
+            if urlparse(url).scheme in ("http", "https"):
+                return url
+    return None
+
+
 def _to_result(resp: httpx.Response, body: bytes) -> FetchResult:
     parsed = feedparser.parse(body)
     return FetchResult(
