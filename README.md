@@ -49,6 +49,18 @@ python -m bot
 
 ## 컨테이너
 
+`main` 머지 시 GitHub Actions가 `linux/amd64`, `linux/arm64` 이미지를 빌드해 GHCR에 푸시합니다.
+
+| 이벤트 | 태그 |
+|---|---|
+| `main` 푸시 | `latest`, `sha-<7자리>` |
+| `v*` 태그 | `<버전>` (예: `0.1.0`), `sha-<7자리>` |
+| PR | 빌드만 수행 (푸시 안 함) |
+
+이미지: `ghcr.io/developowl/discord-blog-bot`
+
+로컬 빌드:
+
 ```bash
 docker build -t discord-blog-bot .
 docker run --env-file .env -v $(pwd)/data:/data discord-blog-bot
