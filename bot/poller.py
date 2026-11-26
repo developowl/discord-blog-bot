@@ -6,7 +6,7 @@ from discord.ext import commands, tasks
 
 from . import embeds
 from .db import Feed
-from .feeds import fetch_feed
+from .feeds import fetch_feed, fetch_og_image
 
 log = logging.getLogger(__name__)
 
@@ -66,6 +66,8 @@ class Poller(commands.Cog):
                     await channel.send(f"📚 **{feed.owner_label}** 님의 새 글이 {skipped}개 더 있어요: {feed.site_url}")
                     await db.mark_seen(feed.id, [e.key for e in new_entries[:skipped]])
                 for entry in new_entries[skipped:]:
+                    if not entry.image:
+                        entry.image = await fetch_og_image(self.bot.http_client, entry.link)
                     await channel.send(embed=embeds.new_post(feed, entry))
                     await db.mark_seen(feed.id, [entry.key])
             except discord.Forbidden:
