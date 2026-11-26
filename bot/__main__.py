@@ -5,6 +5,7 @@ from discord.ext import commands
 
 from .config import Config
 from .db import Database
+from .feeds import make_client
 
 log = logging.getLogger("bot")
 
@@ -16,6 +17,7 @@ class BlogBot(commands.Bot):
         super().__init__(command_prefix=commands.when_mentioned, intents=intents, help_command=None)
         self.config = config
         self.db = Database(config.db_path)
+        self.http_client = make_client(allow_private=config.allow_private_urls)
 
     async def setup_hook(self) -> None:
         await self.db.connect()
@@ -34,6 +36,7 @@ class BlogBot(commands.Bot):
 
     async def close(self) -> None:
         await super().close()
+        await self.http_client.aclose()
         await self.db.close()
 
 
